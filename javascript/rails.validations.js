@@ -73,9 +73,17 @@
     if ($(this[0]).is('form')) {
       return validateForm($(this[0]), validators);
     } else {
-      return validateElement($(this[0]), validators[this[0].name]);
+      return validateElement($(this[0]), 
+        getValidatorsByName(validators, this[0].name));
     }
   }
+
+  var getValidatorsByName = function(validators, name) {
+    if (validators[name])
+      return validators[name];
+      
+    return {};
+  };
 
   var validateForm = function(form, validators) {
     var valid = true;
