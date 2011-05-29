@@ -42,20 +42,24 @@ module ClientSideValidations::ActionView::Helpers
 
     private
 
+    def client_side_form_id(object, options)
+      if options[:html] && options[:html][:id]
+        options[:html][:id]
+      else
+        if object.respond_to?(:persisted?) && object.persisted?
+          options[:as] ? "#{options[:as]}_edit" : dom_id(object, :edit)
+        else
+          options[:as] ? "#{options[:as]}_new" : dom_id(object)
+        end
+      end
+    end
+    
     def client_side_form_settings(object, options)
       if options[:validate]
         builder = options[:builder] || ActionView::Base.default_form_builder
 
-        if options[:html] && options[:html][:id]
-          var_name = options[:html][:id]
-        else
-          var_name = if object.respond_to?(:persisted?) && object.persisted?
-            options[:as] ? "#{options[:as]}_edit" : dom_id(object, :edit)
-          else
-            options[:as] ? "#{options[:as]}_new" : dom_id(object)
-          end
-        end
-
+        var_name = client_side_form_id(object, options)
+        
         content_tag(:script) do
           "window['#{var_name}'] = #{builder.client_side_form_settings(options, self).merge(:validators => 'validator_hash').to_json};".html_safe
         end

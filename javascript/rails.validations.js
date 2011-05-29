@@ -12,6 +12,8 @@
     return this.filter('form[data-validate]').each(function() {
       var form = $(this);
       var settings = window[form.attr('id')];
+      var formBuilder = clientSideValidations.formBuilders[settings.type];
+      formBuilder.beforeSetup && formBuilder.beforeSetup(form, settings);
 
       // Set up the events for the form
       form
@@ -82,6 +84,16 @@
     if (validators[name])
       return validators[name];
       
+    for (key in validators) {
+      var key_regexp = new RegExp(
+        key
+          .replace(/[\[\]]/g, '\\$&')
+          .replace(/\\\[new_.*s\\\]/g, '\\\[new_[0-9]+\\\]'));
+
+      if (name.match(key_regexp))
+        return validators[name] = validators[key];
+    }
+
     return {};
   };
 
@@ -382,6 +394,9 @@ var clientSideValidations = {
       }
     },
     'NestedForm::Builder': {
+      beforeSetup: function(form, settings) {
+        $.extend(settings.validators, settings.blueprint_validators);
+      },
       add: function(element, settings, message) {
         clientSideValidations.formBuilders['ActionView::Helpers::FormBuilder'].add(element, settings, message);
       },
